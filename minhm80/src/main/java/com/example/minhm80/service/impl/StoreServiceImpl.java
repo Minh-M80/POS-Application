@@ -1,5 +1,6 @@
 package com.example.minhm80.service.impl;
 
+import com.example.minhm80.domain.StoreStatus;
 import com.example.minhm80.exceptions.UserException;
 import com.example.minhm80.mapper.StoreMapper;
 import com.example.minhm80.modal.Store;
@@ -48,7 +49,7 @@ public class StoreServiceImpl implements StoreService {
     }
 
     @Override
-    public StoreDTO updateStore(Long id, StoreDTO storeDTO, User user) throws UserException {
+    public StoreDTO updateStore(Long id, StoreDTO storeDTO) throws UserException {
         User currentUser = userService.getCurrentUser();
 
         Store existing = storeRepository.findByStoreAdminId(currentUser.getId());
@@ -94,6 +95,20 @@ public class StoreServiceImpl implements StoreService {
         }
 
         return StoreMapper.toDTO(currentUser.getStore());
+
+    }
+
+    @Override
+    public StoreDTO moderateStore(Long id, StoreStatus status) throws Exception {
+        Store store = storeRepository.findById(id).orElseThrow(
+                ()->new Exception("store not found...")
+        );
+
+        store.setStatus(status);
+
+        Store updatedStore = storeRepository.save(store);
+
+        return StoreMapper.toDTO(updatedStore);
 
     }
 }
