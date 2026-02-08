@@ -25,7 +25,7 @@ public class Store {
     private User storeAdmin;
 
     private LocalDateTime createdAt;
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
 
     private String description;
 
@@ -46,7 +46,7 @@ public class Store {
     @PreUpdate
     // chạy trước khi update
     protected void onUpdate(){
-        updateAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
 

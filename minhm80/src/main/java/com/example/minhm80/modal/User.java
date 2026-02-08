@@ -37,7 +37,7 @@ public class User {
     private String password;
 
     private LocalDateTime createAt;
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
     private LocalDateTime lastLogin;
 
 

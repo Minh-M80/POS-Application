@@ -13,7 +13,7 @@ public class UserMapper {
         userDto.setRole(savedUser.getRole());
         userDto.setCreateAt(savedUser.getCreateAt());
         userDto.setLastLogin(savedUser.getLastLogin());
-        userDto.setUpdateAt(savedUser.getUpdateAt());
+        userDto.setUpdateAt(savedUser.getUpdatedAt());
 
         userDto.setPhone(savedUser.getPhone());
         return  userDto;
