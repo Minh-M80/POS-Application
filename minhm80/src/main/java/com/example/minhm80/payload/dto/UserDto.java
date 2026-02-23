@@ -27,6 +27,8 @@ public class UserDto {
     private String password;
 
 
+    private Long branchId;
+    private Long storeId;
 
     private LocalDateTime createAt;
     private LocalDateTime updateAt;

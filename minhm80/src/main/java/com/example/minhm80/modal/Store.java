@@ -37,6 +37,10 @@ public class Store {
     private StoreContact contact = new StoreContact();
 
     @PrePersist
+
+
+
+
     // chạy trước khi insert
     protected void onCreate(){
         createdAt = LocalDateTime.now();
