@@ -41,6 +41,7 @@ public class Branch {
     @OneToOne(cascade = CascadeType.REMOVE)
     private User manager;
 
+    @PrePersist
     protected void onCreate(){
         createdAt = LocalDateTime.now();
 
