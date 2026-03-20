@@ -11,6 +11,7 @@ import com.example.minhm80.repository.StoreRepository;
 import com.example.minhm80.service.StoreService;
 import com.example.minhm80.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,7 +32,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public StoreDTO getStoreById(Long id) throws Exception {
         Store store = storeRepository.findById(id).orElseThrow(
-                ()-> new Exception("Store not found")
+                ()-> new UserException("Store not found", HttpStatus.NOT_FOUND)
         );
         return StoreMapper.toDTO(store);
     }
@@ -45,7 +46,11 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public Store getStoreByAdmin() throws UserException {
         User admin = userService.getCurrentUser();
-        return storeRepository.findByStoreAdminId(admin.getId());
+        Store store = storeRepository.findByStoreAdminId(admin.getId());
+        if (store == null) {
+            throw new UserException("store not found", HttpStatus.NOT_FOUND);
+        }
+        return store;
     }
 
     @Override
@@ -56,7 +61,7 @@ public class StoreServiceImpl implements StoreService {
 
         if(existing == null){
 
-            throw new UserException("store not found");
+            throw new UserException("store not found", HttpStatus.NOT_FOUND);
         }
 
         existing.setBrand(storeDTO.getBrand());
@@ -91,7 +96,11 @@ public class StoreServiceImpl implements StoreService {
         User currentUser = userService.getCurrentUser();
 
         if(currentUser == null){
-            throw new UserException("you don't have permission to access this store");
+            throw new UserException("you don't have permission to access this store", HttpStatus.FORBIDDEN);
+        }
+
+        if (currentUser.getStore() == null) {
+            throw new UserException("store not found", HttpStatus.NOT_FOUND);
         }
 
         return StoreMapper.toDTO(currentUser.getStore());
@@ -101,7 +110,7 @@ public class StoreServiceImpl implements StoreService {
     @Override
     public StoreDTO moderateStore(Long id, StoreStatus status) throws Exception {
         Store store = storeRepository.findById(id).orElseThrow(
-                ()->new Exception("store not found...")
+                ()->new UserException("store not found...", HttpStatus.NOT_FOUND)
         );
 
         store.setStatus(status);

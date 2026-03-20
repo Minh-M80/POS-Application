@@ -1,5 +1,6 @@
 package com.example.minhm80.service.impl;
 
+import com.example.minhm80.exceptions.UserException;
 import com.example.minhm80.mapper.ProductMapper;
 import com.example.minhm80.modal.Category;
 import com.example.minhm80.modal.Product;
@@ -11,7 +12,7 @@ import com.example.minhm80.repository.ProductRepository;
 import com.example.minhm80.repository.StoreRepository;
 import com.example.minhm80.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.expression.ExpressionException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -29,11 +30,11 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDTO createProduct(ProductDTO productDTO, User user) throws Exception {
         Store store =storeRepository.findById(productDTO.getStoreId()).orElseThrow(
-                ()->new Exception("Store not found")
+                ()->new UserException("Store not found", HttpStatus.NOT_FOUND)
         );
 
         Category category = categoryRepository.findById(productDTO.getCategoryId()).orElseThrow(
-                ()->new Exception("Category not found")
+                ()->new UserException("Category not found", HttpStatus.NOT_FOUND)
         );
 
         Product product = ProductMapper.toEntity(productDTO,store,category);
@@ -44,7 +45,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductDTO updateProduct(Long id, ProductDTO productDTO, User user) throws Exception {
         Product product = productRepository.findById(id).orElseThrow(
-                ()-> new Exception("Product not found")
+                ()-> new UserException("Product not found", HttpStatus.NOT_FOUND)
         );
 
 
@@ -65,7 +66,7 @@ public class ProductServiceImpl implements ProductService {
 
         if(productDTO.getCategoryId() != null){
             Category category = categoryRepository.findById(productDTO.getCategoryId()).orElseThrow(
-                    ()-> new Exception("category not found")
+                    ()-> new UserException("category not found", HttpStatus.NOT_FOUND)
             );
 
             product.setCategory(category);
@@ -79,7 +80,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public void deleteProduct(Long id, User user) throws Exception {
         Product product = productRepository.findById(id).orElseThrow(
-                ()-> new Exception("product not found")
+                ()-> new UserException("product not found", HttpStatus.NOT_FOUND)
         );
 
         productRepository.delete(product);

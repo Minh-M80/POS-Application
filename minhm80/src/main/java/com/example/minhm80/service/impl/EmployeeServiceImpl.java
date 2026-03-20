@@ -1,6 +1,7 @@
 package com.example.minhm80.service.impl;
 
 import com.example.minhm80.domain.UserRole;
+import com.example.minhm80.exceptions.UserException;
 import com.example.minhm80.mapper.UserMapper;
 import com.example.minhm80.modal.Branch;
 import com.example.minhm80.modal.Store;
@@ -11,6 +12,7 @@ import com.example.minhm80.repository.StoreRepository;
 import com.example.minhm80.repository.UserRepository;
 import com.example.minhm80.service.EmployeeService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -30,17 +32,17 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public UserDto createStoreEmployee(UserDto employee, Long storeId) throws Exception {
         Store store = storeRepository.findById(storeId).orElseThrow(
-                ()-> new Exception("Store not found")
+                ()-> new UserException("Store not found", HttpStatus.NOT_FOUND)
         );
 
         Branch branch = null;
 
         if(employee.getRole() ==UserRole.ROLE_BRANCH_MANAGER){
             if(employee.getBranchId() == null){
-                throw new Exception("Branch id is required to create branch manager");
+                throw new UserException("Branch id is required to create branch manager", HttpStatus.BAD_REQUEST);
             }
             branch = branchRepository.findById(employee.getBranchId()).orElseThrow(
-                    ()-> new Exception("branch not found")
+                    ()-> new UserException("branch not found", HttpStatus.NOT_FOUND)
             );
 
         }
@@ -64,7 +66,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     public UserDto createBranchEmployee(UserDto employee, Long branchId) throws Exception {
 
        Branch branch = branchRepository.findById(branchId).orElseThrow(
-                ()-> new Exception("branch not found")
+                ()-> new UserException("branch not found", HttpStatus.NOT_FOUND)
         );
 
        //ADMIN
@@ -77,7 +79,7 @@ public class EmployeeServiceImpl implements EmployeeService {
            user.setPassword(passwordEncoder.encode(employee.getPassword()));
            return UserMapper.toDTO(userRepository.save(user));
        }
-       throw new Exception("Branch role not supported");
+       throw new UserException("Branch role not supported", HttpStatus.BAD_REQUEST);
 
 
 
@@ -90,11 +92,11 @@ public class EmployeeServiceImpl implements EmployeeService {
     public User updateEmployee(Long employeeId, UserDto employeeDetails) throws Exception {
 
         User existingEmployee = userRepository.findById(employeeId).orElseThrow(
-                ()-> new Exception("employee not exist with given id")
+                ()-> new UserException("employee not exist with given id", HttpStatus.NOT_FOUND)
         );
 
         Branch branch =branchRepository.findById(employeeDetails.getBranchId()).orElseThrow(
-                ()->new Exception("branch not found")
+                ()->new UserException("branch not found", HttpStatus.NOT_FOUND)
         );
         existingEmployee.setEmail(employeeDetails.getEmail());
         existingEmployee.setFullName(employeeDetails.getFullName());
@@ -111,7 +113,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public void deleteEmployee(Long employeeId) throws Exception {
         User employee = userRepository.findById(employeeId).orElseThrow(
-                ()->new Exception("employee not found")
+                ()->new UserException("employee not found", HttpStatus.NOT_FOUND)
         );
 
         userRepository.delete(employee);
@@ -121,7 +123,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<UserDto> findStoreEmployees(Long storeId, UserRole role) throws Exception {
         Store store = storeRepository.findById(storeId).orElseThrow(
-                () -> new Exception("store not found")
+                () -> new UserException("store not found", HttpStatus.NOT_FOUND)
         );
         return userRepository.findByStore(store).stream().filter(
                 user -> role == null || user.getRole() == role
@@ -133,7 +135,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public List<UserDto> findBranchEmployees(Long branchId, UserRole role) throws Exception {
         Branch branch = branchRepository.findById(branchId).orElseThrow(
-                () -> new Exception("branch not found")
+                () -> new UserException("branch not found", HttpStatus.NOT_FOUND)
         );
 
         return userRepository.findByBranchId(branchId).stream().filter(

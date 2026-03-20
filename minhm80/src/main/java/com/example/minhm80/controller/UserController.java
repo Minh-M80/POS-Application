@@ -37,9 +37,6 @@ public class UserController {
             @PathVariable Long id
     ) throws UserException {
         User user = userService.getUserById(id);
-        if (user == null){
-            throw new UserException("User not found");
-        }
         return ResponseEntity.ok(UserMapper.toDTO(user));
     }
 

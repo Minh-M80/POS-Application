@@ -2,6 +2,7 @@ package com.example.minhm80.service.impl;
 
 import com.example.minhm80.domain.OrderStatus;
 import com.example.minhm80.domain.PaymentType;
+import com.example.minhm80.exceptions.UserException;
 import com.example.minhm80.mapper.OrderMapper;
 import com.example.minhm80.modal.*;
 import com.example.minhm80.payload.dto.OrderDTO;
@@ -10,9 +11,8 @@ import com.example.minhm80.repository.OrderRepository;
 import com.example.minhm80.repository.ProductRepository;
 import com.example.minhm80.service.OrderService;
 import com.example.minhm80.service.UserService;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.cglib.core.Local;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -35,7 +35,7 @@ public class OrderServiceImpl implements OrderService {
 
         Branch branch = cashier.getBranch();
         if(branch == null){
-            throw new Exception("Cashier branch not found");
+            throw new UserException("Cashier branch not found", HttpStatus.BAD_REQUEST);
         }
 
         Order order =Order.builder()
@@ -48,13 +48,8 @@ public class OrderServiceImpl implements OrderService {
 
         List<OrderItem> orderItems = orderDTO.getItems().stream().map(
                 itemDto -> {
-                    Product product = null;
-                    try {
-                        product = productRepository.findById(itemDto.getProductId())
-                                .orElseThrow(() -> new EntityNotFoundException("product not found"));
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
+                    Product product = productRepository.findById(itemDto.getProductId())
+                            .orElseThrow(() -> new UserException("product not found", HttpStatus.NOT_FOUND));
 
                     //                 return orderItemRepository.save(orderItem);
                     return OrderItem.builder()
@@ -81,7 +76,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDTO getOrderById(Long id) throws Exception {
         return  orderRepository.findById(id).map(OrderMapper::toDTO).orElseThrow(
-                () -> new Exception("order not found with id" + id)
+                () -> new UserException("order not found with id " + id, HttpStatus.NOT_FOUND)
         );
     }
 
@@ -114,7 +109,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public void deleteOrder(Long id) throws Exception {
             Order order = orderRepository.findById(id).orElseThrow(
-                    ()-> new Exception("order not found")
+                    ()-> new UserException("order not found", HttpStatus.NOT_FOUND)
             );
             orderRepository.delete(order);
     }

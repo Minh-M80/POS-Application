@@ -1,9 +1,11 @@
 package com.example.minhm80.service.impl;
 
+import com.example.minhm80.exceptions.UserException;
 import com.example.minhm80.modal.Customer;
 import com.example.minhm80.repository.CustomerRepository;
 import com.example.minhm80.service.CustomerService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -20,7 +22,7 @@ public class CustomerImpl implements CustomerService {
     @Override
     public Customer updateCustomer(Long id, Customer customer) throws Exception {
         Customer customerToUpdate = customerRepository.findById(id).orElseThrow(
-                () -> new Exception("Customer not found")
+                () -> new UserException("Customer not found", HttpStatus.NOT_FOUND)
         );
         customerToUpdate.setFullName(customer.getFullName());
         customerToUpdate.setEmail(customerToUpdate.getEmail());
@@ -33,7 +35,7 @@ public class CustomerImpl implements CustomerService {
     @Override
     public void deleteCustomer(Long id) throws Exception {
         Customer customerToUpdate = customerRepository.findById(id).orElseThrow(
-                () -> new Exception("Customer not found")
+                () -> new UserException("Customer not found", HttpStatus.NOT_FOUND)
         );
         customerRepository.delete(customerToUpdate);
     }
@@ -41,7 +43,7 @@ public class CustomerImpl implements CustomerService {
     @Override
     public Customer getCustomer(Long id) throws Exception {
         return customerRepository.findById(id).orElseThrow(
-                () -> new Exception("Customer not found")
+                () -> new UserException("Customer not found", HttpStatus.NOT_FOUND)
         );
     }
 

@@ -1,8 +1,20 @@
 package com.example.minhm80.exceptions;
 
-public class UserException extends Exception {
-    public UserException(String message) {
-        super(message);
+import org.springframework.http.HttpStatus;
 
+public class UserException extends RuntimeException {
+    private final HttpStatus status;
+
+    public UserException(String message) {
+        this(message, HttpStatus.BAD_REQUEST);
+    }
+
+    public UserException(String message, HttpStatus status) {
+        super(message);
+        this.status = status;
+    }
+
+    public HttpStatus getStatus() {
+        return status;
     }
 }

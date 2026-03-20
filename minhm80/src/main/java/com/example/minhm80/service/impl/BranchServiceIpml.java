@@ -8,10 +8,10 @@ import com.example.minhm80.modal.User;
 import com.example.minhm80.payload.dto.BranchDTO;
 import com.example.minhm80.repository.BranchRepository;
 import com.example.minhm80.repository.StoreRepository;
-import com.example.minhm80.repository.UserRepository;
 import com.example.minhm80.service.BranchService;
 import com.example.minhm80.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +33,9 @@ public class BranchServiceIpml implements BranchService {
         User currentUser = userService.getCurrentUser();
 
         Store store = storeRepository.findByStoreAdminId(currentUser.getId());
+        if (store == null) {
+            throw new UserException("store not found", HttpStatus.NOT_FOUND);
+        }
 
         Branch branch = BranchMapper.toEntity(branchDTO,store);
 
@@ -44,7 +47,7 @@ public class BranchServiceIpml implements BranchService {
     public BranchDTO updateBranch(Long id, BranchDTO branchDTO) throws Exception {
 
         Branch existing = branchRepository.findById(id).orElseThrow(
-                ()-> new Exception("branch not exist..")
+                ()-> new UserException("branch not exist..", HttpStatus.NOT_FOUND)
         );
 
         existing.setName(branchDTO.getName());
@@ -64,7 +67,7 @@ public class BranchServiceIpml implements BranchService {
     @Override
     public void deleteBranch(Long id) throws Exception {
         Branch existing = branchRepository.findById(id).orElseThrow(
-                ()-> new Exception("branch not exist..")
+                ()-> new UserException("branch not exist..", HttpStatus.NOT_FOUND)
         );
         branchRepository.delete(existing);
     }
@@ -82,7 +85,7 @@ public class BranchServiceIpml implements BranchService {
     @Override
     public BranchDTO getBranchById(Long id) throws Exception {
         Branch existing = branchRepository.findById(id).orElseThrow(
-                ()-> new Exception("branch not exist..")
+                ()-> new UserException("branch not exist..", HttpStatus.NOT_FOUND)
         );
 
         return BranchMapper.toDTO(existing);

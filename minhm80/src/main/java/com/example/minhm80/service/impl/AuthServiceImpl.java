@@ -10,6 +10,7 @@ import com.example.minhm80.payload.response.AuthResponse;
 import com.example.minhm80.repository.UserRepository;
 import com.example.minhm80.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -36,10 +37,10 @@ public class AuthServiceImpl implements AuthService {
     public AuthResponse signup(UserDto userDto) throws UserException {
         User user = userRepository.findByEmail(userDto.getEmail());
         if(user != null){
-            throw new UserException("email id already registered !");
+            throw new UserException("email id already registered !", HttpStatus.CONFLICT);
         }
         if(userDto.getRole().equals(UserRole.ROLE_ADMIN)){
-            throw new UserException("role admin is not allowed!");
+            throw new UserException("role admin is not allowed!", HttpStatus.FORBIDDEN);
         }
 
         User newUser = new User();
@@ -102,11 +103,11 @@ public class AuthServiceImpl implements AuthService {
         UserDetails userDetails = customUserImplementation.loadUserByUsername(email);
 
         if(userDetails == null){
-            throw new UserException("Email id doesn't exist" + email);
+            throw new UserException("Email id doesn't exist " + email, HttpStatus.UNAUTHORIZED);
         }
 
         if(!passwordEncoder.matches(password,userDetails.getPassword())){
-            throw new UserException("password doesn't match");
+            throw new UserException("password doesn't match", HttpStatus.UNAUTHORIZED);
         }
 
 

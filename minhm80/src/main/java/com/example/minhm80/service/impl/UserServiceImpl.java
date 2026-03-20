@@ -7,6 +7,7 @@ import com.example.minhm80.repository.UserRepository;
 import com.example.minhm80.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -26,7 +27,7 @@ public class UserServiceImpl implements UserService {
         String email = jwtProvider.getEmailFromToken(token);
         User user = userRepository.findByEmail(email);
         if (user == null){
-            throw new UserException("Invalid token");
+            throw new UserException("Invalid token", HttpStatus.UNAUTHORIZED);
         }
         return user;
     }
@@ -38,7 +39,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email);
 
         if(user == null){
-            throw new UserException("user not found");
+            throw new UserException("user not found", HttpStatus.NOT_FOUND);
         }
 
         return user;
@@ -49,7 +50,7 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findByEmail(email);
 
         if(user == null){
-            throw new UserException("user not found");
+            throw new UserException("user not found", HttpStatus.NOT_FOUND);
         }
 
         return user;
@@ -58,7 +59,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public User getUserById(Long id) throws UserException {
         return userRepository.findById(id).orElseThrow(
-                ()->new UserException("User not found")
+                ()->new UserException("User not found", HttpStatus.NOT_FOUND)
         );
 
     }

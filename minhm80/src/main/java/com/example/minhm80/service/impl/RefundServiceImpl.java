@@ -1,5 +1,6 @@
 package com.example.minhm80.service.impl;
 
+import com.example.minhm80.exceptions.UserException;
 import com.example.minhm80.mapper.RefundMapper;
 import com.example.minhm80.modal.Branch;
 import com.example.minhm80.modal.Order;
@@ -11,7 +12,7 @@ import com.example.minhm80.repository.RefundRepository;
 import com.example.minhm80.service.RefundService;
 import com.example.minhm80.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.expression.ExpressionException;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -30,7 +31,7 @@ public class RefundServiceImpl implements RefundService {
         User cashier = userService.getCurrentUser();
 
         Order order = orderRepository.findById(refund.getOrderId()).orElseThrow(
-                () -> new Exception("order not found")
+                () -> new UserException("order not found", HttpStatus.NOT_FOUND)
         );
 
         Branch branch = order.getBranch();
@@ -94,7 +95,7 @@ public class RefundServiceImpl implements RefundService {
         return refundRepository.findById(refundId).map(
                 RefundMapper::toDTO
         ).orElseThrow(
-                () -> new Exception("refund not found")
+                () -> new UserException("refund not found", HttpStatus.NOT_FOUND)
         );
     }
 
