@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("api/users")
@@ -38,6 +40,16 @@ public class UserController {
     ) throws UserException {
         User user = userService.getUserById(id);
         return ResponseEntity.ok(UserMapper.toDTO(user));
+    }
+
+    @GetMapping()
+    public ResponseEntity<List<UserDto>> getAllUser(
+
+    ) throws UserException {
+
+        return ResponseEntity.ok(userService.getAllUsers().stream().map(
+                UserMapper::toDTO
+        ).toList());
     }
 
 

@@ -30,13 +30,15 @@ public class SecurityConfig {
 //                                .requestMatchers("/api/**").authenticated()
 //                                .anyRequest().permitAll()
                                 .requestMatchers(
-                                        "/api/auth/**"
-
+                                        "/auth/**",
+                                        "/v3/api-docs/**",
+                                        "/swagger-ui/**",
+                                        "/swagger-ui.html"
 
                                 ).permitAll()
 
                                 // 2️⃣ Role-based (QUYỀN CAO hơn đặt TRƯỚC)
-                                .requestMatchers("/api/super-admin/**").hasRole("ADMIN")
+//                                .requestMatchers("/api/super-admin/**").hasRole("ADMIN")
 
                                 // 3️⃣ Các API còn lại cần đăng nhập
                                 .requestMatchers("/api/**").authenticated()

@@ -8,6 +8,10 @@ package com.example.minhm80.service.impl;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.http.HttpStatus;
 
@@ -36,6 +40,11 @@ public class InventoryServiceImpl implements InventoryService {
     private final ProductRepository productRepository;
     private final InventoryRepository inventoryRepository;
     @Override
+
+    @Caching(evict = {
+            @CacheEvict(value = "inventoryByBranch", key = "#inventoryDTO.branchId"),
+            @CacheEvict(value = "inventoryByProductAndBranch", key = "#inventoryDTO.productId + ':' + #inventoryDTO.branchId")
+    })
     public InventoryDTO createInventory(InventoryDTO inventoryDTO) {
         Branch branch = branchRepository.findById(inventoryDTO.getBranchId())
                 .orElseThrow(() -> new UserException("Branch not found with id: " + inventoryDTO.getBranchId(), HttpStatus.NOT_FOUND));
@@ -49,6 +58,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @CachePut(value = "inventoryById", key = "#id")
     public InventoryDTO updateInventory(Long id,InventoryDTO inventoryDTO) throws Exception {
             Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new UserException("Inventory not found", HttpStatus.NOT_FOUND));
@@ -61,6 +71,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @CacheEvict(value = "inventoryById", key = "#id")
     public void deleteInventory(Long id) throws Exception {
         Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new UserException("Inventory not found", HttpStatus.NOT_FOUND));
@@ -68,6 +79,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @Cacheable(value = "inventoryById", key = "#id")
     public InventoryDTO getInventoryById(Long id) throws Exception {
         Inventory inventory = inventoryRepository.findById(id)
                 .orElseThrow(() -> new UserException("Inventory not found", HttpStatus.NOT_FOUND));
@@ -75,6 +87,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @Cacheable(value = "inventoryByProductAndBranch", key = "#productId + ':' + #branchId")
     public InventoryDTO getInventoryByProductIdAndBranchId(Long productId, Long branchId) {
         Inventory inventory = inventoryRepository.findByProductIdAndBranchId(productId,branchId);
 
@@ -82,6 +95,7 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    @Cacheable(value = "inventoryByBranch", key = "#branchId")
     public List<InventoryDTO> getAllInventoryByBranchId(Long branchId) {
         List<Inventory> inventories = inventoryRepository.findByBranchId(branchId);
         return inventories.stream().map(

@@ -1,0 +1,434 @@
+================================================================================
+      TỔNG QUAN DỰ ÁN: POS APPLICATION (POINT OF SALE SYSTEM)
+================================================================================
+
+Tên dự án   : minhm80 - POS Application Backend
+Công nghệ   : Java 21 + Spring Boot 3.5.9
+Database    : MySQL 8.0
+Cache       : Redis 7
+Port mặc định: 5000
+Swagger UI  : http://localhost:5000/swagger-ui/index.html
+
+================================================================================
+I. Ý TƯỞNG DỰ ÁN
+================================================================================
+
+POS (Point of Sale) là hệ thống quản lý bán hàng tại điểm bán dành cho các
+chuỗi cửa hàng (chain store). Hệ thống cho phép:
+
+  1. Một tổ chức (Store) có thể có nhiều chi nhánh (Branch)
+  2. Mỗi Branch có quản lý (Branch Manager) và thu ngân (Cashier)
+  3. Thu ngân tạo đơn hàng (Order) và quản lý ca làm việc (Shift)
+  4. Hệ thống tự động tổng hợp báo cáo ca (Shift Report) gồm doanh thu, hoàn
+     tiền, các phương thức thanh toán, sản phẩm bán chạy...
+
+Ví dụ thực tế: Chuỗi cà phê có 1 Store (công ty) → nhiều Branch (quán) →
+mỗi quán có nhân viên, thu ngân → thu ngân bán hàng, kết ca sinh báo cáo.
+
+================================================================================
+II. KIẾN TRÚC HỆ THỐNG
+================================================================================
+
+  [Client / Swagger UI]
+         |
+         ▼
+  [Spring Security + JWT Filter]  ← JwtValidator (lọc mọi request /api/**)
+         |
+         ▼
+  [REST Controllers]    ← Xử lý HTTP request, trả response
+         |
+         ▼
+  [Service Layer]       ← Logic nghiệp vụ, phân quyền
+         |
+         ▼
+  [Repository Layer]    ← JPA Repositories, truy vấn DB
+         |
+         ▼
+  [MySQL Database]      ← Lưu trữ toàn bộ dữ liệu
+         |
+  [Redis Cache]         ← Cache dữ liệu thường dùng (TTL 10 phút)
+
+================================================================================
+III. CẤU TRÚC THƯ MỤC
+================================================================================
+
+src/main/java/com/example/minhm80/
+│
+├── Minhm80Application.java          ← Entry point Spring Boot
+│
+├── configuration/                   ← Cấu hình toàn cục
+│   ├── JwtConstant.java             ← Hằng số JWT (secret key, header name)
+│   ├── JwtProvider.java             ← Tạo JWT token
+│   ├── JwtValidator.java            ← Filter kiểm tra JWT mỗi request
+│   ├── OpenApiConfig.java           ← Cấu hình Swagger + Bearer Auth
+│   ├── RedisConfig.java             ← Cấu hình Redis + Jackson serializer
+│   └── SecurityConfig.java          ← Cấu hình Spring Security + CORS
+│
+├── controller/                      ← REST API Controllers
+│   ├── AuthController.java          ← /auth/signup, /auth/login
+│   ├── BranchController.java        ← /api/branches/**
+│   ├── CategoryController.java      ← /api/categories/**
+│   ├── CustomerController.java      ← /api/customers/**
+│   ├── EmployeeController.java      ← /api/employees/**
+│   ├── InventoryController.java     ← /api/inventory/**
+│   ├── OrderController.java         ← /api/orders/**
+│   ├── ProductController.java       ← /api/products/**
+│   ├── RefundController.java        ← /api/refunds/**
+│   ├── ShiftReportController.java   ← /api/shifts/**
+│   ├── StoreController.java         ← /api/stores/**
+│   └── UserController.java          ← /api/users/**
+│
+├── domain/                          ← Enums định nghĩa trạng thái
+│   ├── OrderStatus.java             ← PENDING, COMPLETED, CANCELLED
+│   ├── PaymentType.java             ← CASH, CARD, UPI, ...
+│   ├── StoreStatus.java             ← PENDING, ACTIVE, INACTIVE, ...
+│   └── UserRole.java                ← ROLE_ADMIN, ROLE_STORE_ADMIN,
+│                                       ROLE_BRANCH_MANAGER, ROLE_BRANCH_CASHIER
+│                                       ROLE_STORE_MANAGER
+│
+├── exceptions/                      ← Xử lý lỗi tập trung
+│   ├── UserException.java           ← Custom exception với HttpStatus
+│   ├── GlobalException.java         ← @ControllerAdvice xử lý mọi exception
+│   └── ErrorResponse.java           ← Cấu trúc response khi lỗi
+│
+├── mapper/                          ← Chuyển đổi Entity ↔ DTO
+│   ├── BranchMapper.java
+│   ├── CategoryMapper.java
+│   ├── InventoryMapper.java
+│   ├── OrderItemMapper.java
+│   ├── OrderMapper.java
+│   ├── ProductMapper.java
+│   ├── RefundMapper.java
+│   ├── ShiftReportMapper.java
+│   ├── StoreMapper.java
+│   └── UserMapper.java
+│
+├── modal/                           ← JPA Entities (bảng database)
+│   ├── User.java                    ← Bảng users
+│   ├── Store.java                   ← Bảng stores
+│   ├── Branch.java                  ← Bảng branches
+│   ├── Category.java                ← Bảng categories
+│   ├── Customer.java                ← Bảng customers
+│   ├── Inventory.java               ← Bảng inventory
+│   ├── Order.java                   ← Bảng orders
+│   ├── OrderItem.java               ← Bảng order_items
+│   ├── PaymentSumary.java           ← Nhúng trong ShiftReport (không phải bảng)
+│   ├── Product.java                 ← Bảng products
+│   ├── Refund.java                  ← Bảng refunds
+│   ├── ShiftReport.java             ← Bảng shift_reports
+│   └── StoreContact.java            ← Embedded trong Store (địa chỉ, SĐT)
+│
+├── payload/
+│   ├── dto/                         ← Data Transfer Objects (giao tiếp API)
+│   │   ├── BranchDTO.java
+│   │   ├── CategoryDTO.java
+│   │   ├── InventoryDTO.java
+│   │   ├── OrderDTO.java
+│   │   ├── OrderItemDTO.java
+│   │   ├── ProductDTO.java
+│   │   ├── RefundDTO.java
+│   │   ├── ShiftReportDTO.java
+│   │   ├── StoreDTO.java
+│   │   └── UserDto.java
+│   │
+│   ├── request/                     ← [TRỐNG] Chưa có file nào
+│   │                                   → Chưa cần dùng, request dùng thẳng DTO
+│   │
+│   └── response/                    ← Response wrappers
+│       ├── ApiResponse.java         ← {message: "..."} dùng cho DELETE
+│       └── AuthResponse.java        ← {jwt, message, user} dùng cho auth
+│
+├── repository/                      ← Spring Data JPA Repositories
+│   ├── BranchRepository.java
+│   ├── CategoryRepository.java
+│   ├── CustomerRepository.java
+│   ├── InventoryRepository.java
+│   ├── OrderItemRepository.java
+│   ├── OrderRepository.java
+│   ├── ProductRepository.java
+│   ├── RefundRepository.java
+│   ├── ShiftReportRepository.java
+│   ├── StoreRepository.java
+│   └── UserRepository.java
+│
+└── service/                         ← Service interfaces + implementations
+    ├── AuthService.java
+    ├── BranchService.java
+    ├── CategoryService.java
+    ├── CustomerService.java
+    ├── EmployeeService.java
+    ├── InventoryService.java
+    ├── OrderService.java
+    ├── ProductService.java
+    ├── RefundService.java
+    ├── ShiftReportService.java
+    ├── StoreService.java
+    ├── UserService.java
+    └── impl/                        ← Implementations
+        ├── AuthServiceImpl.java
+        ├── BranchServiceIpml.java
+        ├── CategoryServiceImpl.java
+        ├── CustomUserImplementation.java  ← UserDetailsService cho Spring Security
+        ├── CustomerImpl.java
+        ├── EmployeeServiceImpl.java
+        ├── InventoryServiceImpl.java
+        ├── OrderServiceImpl.java
+        ├── ProductServiceImpl.java
+        ├── RefundServiceImpl.java
+        ├── ShiftReportServiceImpl.java
+        ├── StoreServiceImpl.java
+        └── UserServiceImpl.java
+
+================================================================================
+IV. MÔ HÌNH DỮ LIỆU (DATABASE SCHEMA)
+================================================================================
+
+  [Store] ──────── 1:1 ──────── [User] (storeAdmin)
+     |
+     ├── 1:N ──── [Branch] ──── 1:1 ──── [User] (manager)
+     |               |
+     |               └── 1:N ──── [ShiftReport] (cashier)
+     |                                |
+     |                                └── 1:N ──── [Refund]
+     |
+     ├── 1:N ──── [Product] ──── N:1 ──── [Category]
+     |
+     ├── 1:N ──── [Inventory]
+     |
+     └── 1:N ──── [Order] (qua branch)
+                     |
+                     ├── N:1 ──── [User] (cashier)
+                     ├── N:1 ──── [Customer]
+                     └── 1:N ──── [OrderItem] ──── N:1 ──── [Product]
+
+Quan hệ chính:
+  • Store     → có nhiều Branch, nhiều Product, một User làm Admin
+  • Branch    → có nhiều User (nhân viên), nhiều Order, nhiều ShiftReport
+  • User      → thuộc Store và/hoặc Branch, có Role xác định quyền
+  • Order     → có nhiều OrderItem, thuộc Branch, do Cashier tạo
+  • ShiftReport → do Cashier tạo khi bắt đầu/kết thúc ca
+
+================================================================================
+V. PHÂN QUYỀN (ROLES)
+================================================================================
+
+  ROLE_ADMIN          → Quản trị viên hệ thống (không được đăng ký qua API)
+  ROLE_STORE_ADMIN    → Chủ cửa hàng, quản lý Store
+  ROLE_STORE_MANAGER  → Quản lý cấp Store
+  ROLE_BRANCH_MANAGER → Quản lý chi nhánh (Branch)
+  ROLE_BRANCH_CASHIER → Thu ngân tại chi nhánh
+
+================================================================================
+VI. LUỒNG HOẠT ĐỘNG CHÍNH
+================================================================================
+
+------ A. Luồng Đăng ký / Đăng nhập ------
+  1. POST /auth/signup  → Đăng ký tài khoản (không được đăng ký ROLE_ADMIN)
+  2. POST /auth/login   → Đăng nhập, nhận JWT token
+  3. Dùng JWT token trong header: Authorization: Bearer <token>
+  4. JwtValidator filter kiểm tra token mỗi request
+
+------ B. Luồng Quản lý Store ------
+  1. Admin tạo Store: POST /api/stores
+  2. Admin tạo Branch trong Store: POST /api/branches
+  3. Admin tạo nhân viên cho Store: POST /api/employees/store/{storeId}
+  4. Admin tạo nhân viên cho Branch: POST /api/employees/branch/{branchId}
+     (Khi tạo ROLE_BRANCH_MANAGER phải truyền branchId)
+
+------ C. Luồng Bán hàng (POS) ------
+  1. Cashier đăng nhập, lấy JWT
+  2. Cashier bắt đầu ca: POST /api/shifts/start
+  3. Cashier tạo đơn hàng: POST /api/orders
+     - Chọn sản phẩm (productId + quantity)
+     - Hệ thống tự tính total = sellingPrice × quantity
+     - Gắn cashier vào order tự động qua JWT
+  4. Nếu có hoàn tiền: POST /api/refunds
+  5. Cashier kết thúc ca: POST /api/shifts/end
+     - Hệ thống tự tính: totalSales, totalRefunds, netSale
+     - Thống kê theo phương thức thanh toán (CASH/CARD/UPI...)
+     - Top 5 sản phẩm bán chạy
+     - 5 đơn hàng gần nhất
+
+------ D. Luồng Quản lý Kho ------
+  1. Tạo sản phẩm: POST /api/products
+  2. Thêm hàng vào kho: POST /api/inventory
+  3. Xem tồn kho: GET /api/inventory
+
+================================================================================
+VII. DANH SÁCH API ENDPOINTS
+================================================================================
+
+[AUTH] - Public, không cần JWT
+  POST   /auth/signup                → Đăng ký
+  POST   /auth/login                 → Đăng nhập
+
+[STORE] - Cần JWT
+  POST   /api/stores                 → Tạo store mới
+  GET    /api/stores                 → Lấy tất cả stores
+  GET    /api/stores/{id}            → Lấy store theo ID
+  GET    /api/stores/admin           → Lấy store của admin hiện tại
+  GET    /api/stores/employee        → Lấy store của nhân viên hiện tại
+  PUT    /api/stores/{id}            → Cập nhật store
+  PUT    /api/stores/{id}/moderate   → Thay đổi trạng thái store
+  DELETE /api/stores/{id}            → Xóa store
+
+[BRANCH] - Cần JWT
+  POST   /api/branches               → Tạo branch mới
+  GET    /api/branches/{id}          → Lấy branch theo ID
+  GET    /api/branches/store/{id}    → Lấy branches theo store
+  PUT    /api/branches/{id}          → Cập nhật branch
+  DELETE /api/branches/{id}          → Xóa branch
+
+[EMPLOYEE] - Cần JWT
+  POST   /api/employees/store/{storeId}   → Tạo nhân viên cho Store
+  POST   /api/employees/branch/{branchId} → Tạo nhân viên cho Branch
+  PUT    /api/employees/{id}              → Cập nhật nhân viên
+  DELETE /api/employees/{id}             → Xóa nhân viên
+  GET    /api/employees/store/{id}        → DS nhân viên Store (filter theo role)
+  GET    /api/employees/branch/{id}       → DS nhân viên Branch (filter theo role)
+
+[PRODUCT] - Cần JWT
+  POST   /api/products/{storeId}/{categoryId} → Tạo sản phẩm
+  GET    /api/products/store/{storeId}         → SP theo store
+  GET    /api/products/category/{categoryId}   → SP theo category
+  GET    /api/products/{id}                    → SP theo ID
+  PUT    /api/products/{id}                    → Cập nhật SP
+  DELETE /api/products/{id}                    → Xóa SP
+
+[CATEGORY] - Cần JWT
+  POST   /api/categories/{storeId}   → Tạo danh mục
+  GET    /api/categories/{storeId}   → DS danh mục theo store
+  PUT    /api/categories/{id}        → Cập nhật danh mục
+  DELETE /api/categories/{id}        → Xóa danh mục
+
+[ORDER] - Cần JWT
+  POST   /api/orders                          → Tạo đơn hàng
+  GET    /api/orders/{id}                     → Lấy đơn theo ID
+  GET    /api/orders/branch/{branchId}        → DS đơn theo branch + filter
+  GET    /api/orders/cashier/{cashierId}      → DS đơn theo cashier
+  GET    /api/orders/today/{branchId}         → Đơn hôm nay của branch
+  GET    /api/orders/customer/{customerId}    → Đơn theo khách hàng
+  GET    /api/orders/recent/{branchId}        → 5 đơn gần nhất
+  DELETE /api/orders/{id}                     → Xóa đơn hàng
+
+[CUSTOMER] - Cần JWT
+  POST   /api/customers              → Tạo khách hàng
+  GET    /api/customers/{id}         → Lấy khách hàng theo ID
+  GET    /api/customers/phone/{phone}→ Tìm theo SĐT
+  PUT    /api/customers/{id}         → Cập nhật
+  DELETE /api/customers/{id}         → Xóa
+
+[INVENTORY] - Cần JWT
+  POST   /api/inventory/{productId}/{branchId}  → Thêm tồn kho
+  GET    /api/inventory/branch/{branchId}        → Tồn kho theo branch
+  GET    /api/inventory/product/{productId}      → Tồn kho theo SP
+  PUT    /api/inventory/{id}                     → Cập nhật tồn kho
+  DELETE /api/inventory/{id}                     → Xóa tồn kho
+
+[REFUND] - Cần JWT
+  POST   /api/refunds/{orderId}            → Tạo hoàn tiền
+  GET    /api/refunds/{id}                 → Lấy hoàn tiền theo ID
+  GET    /api/refunds/order/{orderId}      → Hoàn tiền theo đơn
+  GET    /api/refunds/cashier/{cashierId}  → Hoàn tiền theo cashier
+  GET    /api/refunds/branch/{branchId}    → Hoàn tiền theo branch
+  DELETE /api/refunds/{id}                 → Xóa hoàn tiền
+
+[SHIFT REPORT] - Cần JWT
+  POST   /api/shifts/start                       → Bắt đầu ca làm việc
+  POST   /api/shifts/end                         → Kết thúc ca
+  GET    /api/shifts/{id}                        → Báo cáo theo ID
+  GET    /api/shifts                             → Tất cả báo cáo ca
+  GET    /api/shifts/branch/{branchId}           → Báo cáo theo branch
+  GET    /api/shifts/cashier/{cashierId}         → Báo cáo theo cashier
+  GET    /api/shifts/current                     → Ca hiện tại đang chạy
+  GET    /api/shifts/cashier/{id}/date           → Báo cáo theo cashier + ngày
+
+[USER] - Cần JWT
+  GET    /api/users/profile                      → Lấy thông tin user hiện tại
+
+================================================================================
+VIII. BẢO MẬT
+================================================================================
+
+1. JWT Authentication:
+   - Token tạo bằng JJWT 0.12.6
+   - Mỗi token chứa email + role của user
+   - JwtValidator kiểm tra token trong header "Authorization: Bearer ..."
+   - SecurityContextHolder lưu thông tin auth cho mỗi request
+
+2. Password Encryption:
+   - Mật khẩu mã hóa bằng BCryptPasswordEncoder
+   - Không bao giờ lưu plain text
+
+3. CORS:
+   - Cho phép: http://localhost:5173 (Vite/React), http://localhost:3000
+   - Headers, Methods: cho phép tất cả
+
+4. Security Rules:
+   - /auth/**, /swagger-ui/**, /v3/api-docs/** → PUBLIC (không cần JWT)
+   - /api/** → Cần đăng nhập (authenticated)
+   - Các endpoint còn lại → PUBLIC
+
+================================================================================
+IX. CACHE (REDIS)
+================================================================================
+
+- Redis chạy tại localhost:6379
+- TTL mặc định: 10 phút (600.000ms)
+- Serializer: GenericJackson2Json (hỗ trợ LocalDateTime qua JavaTimeModule)
+- Mục đích: Cache dữ liệu ít thay đổi (danh sách sản phẩm, category...)
+
+================================================================================
+X. DEPENDENCIES CHÍNH
+================================================================================
+
+  spring-boot-starter-data-jpa    → ORM, kết nối database qua Hibernate
+  spring-boot-starter-security    → Bảo mật, filter, authentication
+  spring-boot-starter-web         → REST API, Jackson JSON
+  spring-boot-starter-validation  → Bean Validation (@NotBlank, @Email...)
+  spring-boot-starter-data-redis  → Redis cache
+  spring-boot-starter-mail        → Gửi email (đã cấu hình, chưa dùng)
+  springdoc-openapi-starter-webmvc-ui:2.5.0  → Swagger UI
+  mysql-connector-j               → Driver kết nối MySQL
+  jjwt:0.12.6 + jjwt-impl        → Tạo và verify JWT token
+  lombok:1.18.38                  → Giảm boilerplate code (@Getter, @Builder...)
+  stripe-java:28.3.1              → Tích hợp thanh toán Stripe (đã import)
+
+================================================================================
+XI. CẤU HÌNH MÔI TRƯỜNG (application.properties)
+================================================================================
+
+  server.port=5000
+  spring.datasource.url=jdbc:mysql://localhost:3306/pos-yt
+  spring.datasource.username=root
+  spring.datasource.password=Nguyen123456789-
+  spring.jpa.hibernate.ddl-auto=update     ← Tự tạo/cập nhật bảng
+  spring.jpa.show-sql=true                 ← Log SQL ra console
+  spring.data.redis.host=localhost
+  spring.data.redis.port=6379
+  spring.cache.redis.time-to-live=600000   ← 10 phút
+
+================================================================================
+XII. GHI CHÚ & LƯU Ý
+================================================================================
+
+1. Folder payload/request/ đang TRỐNG:
+   - Đây là folder dự phòng để tách riêng Request DTO (chỉ dùng khi nhận dữ
+     liệu từ client, khác với DTO dùng cả chiều vào/ra).
+   - Hiện tại project dùng thẳng DTO trong payload/dto/ cho cả request và
+     response → hoàn toàn hợp lệ và có thể xóa folder request/ nếu không dùng.
+
+2. Nhiều validation annotation đang bị comment out:
+   - Ví dụ: @NotBlank, @NotNull trên các Entity
+   - Lý do: Development mode, muốn linh hoạt khi test
+   - Nên bật lại khi chạy production
+
+3. EmployeeServiceImpl.updateEmployee() có bug nhỏ:
+   - Khi branchId trong employeeDetails là null sẽ throw NullPointerException
+   - Nên thêm null check trước khi truy vấn branchRepository
+
+4. Stripe đã được import trong pom.xml nhưng chưa implement API thanh toán online.
+
+5. Spring Mail đã trong dependencies nhưng chưa cấu hình smtp server.
+
+================================================================================
