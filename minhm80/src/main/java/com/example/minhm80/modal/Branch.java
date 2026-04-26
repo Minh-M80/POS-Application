@@ -21,7 +21,7 @@ import java.util.List;
 @Builder
 public class Branch {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
 //    @NotBlank(message = "Branch name is required")

@@ -1,5 +1,6 @@
 package com.example.minhm80.modal;
 
+import com.example.minhm80.domain.OrderStatus;
 import com.example.minhm80.domain.PaymentType;
 import jakarta.persistence.*;
 import jakarta.validation.Valid;
@@ -21,7 +22,7 @@ import java.util.List;
 public class Order {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
 //    @NotNull(message = "Total amount is required")
@@ -47,10 +48,17 @@ public class Order {
     private List<OrderItem> items;
 
 //    @NotNull(message = "Payment type is required")
+    @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
+
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
     @PrePersist
     protected void onCreate(){
         createdAt = LocalDateTime.now();
+        if (status == null) {
+            status = OrderStatus.PENDING;
+        }
 
     }
 

@@ -19,7 +19,7 @@ import java.util.List;
 public class ShiftReport {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
 //    @NotNull(message = "Shift start is required")
@@ -56,12 +56,10 @@ public class ShiftReport {
     private List<PaymentSumary> paymentSumaries;
 
 
-    @OneToMany(cascade = CascadeType.ALL)
-//    @Valid
+    @Transient
     private List<Product> topSellingProducts;
 
-    @OneToMany(cascade = CascadeType.ALL)
-//    @Valid
+    @Transient
     private List<Order> recentOrders;
 
     @OneToMany(mappedBy = "shiftReport",cascade = CascadeType.ALL)

@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 public class Refund {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
@@ -52,6 +52,7 @@ public class Refund {
 
 
 //    @NotNull(message = "Payment type is required")
+    @Enumerated(EnumType.STRING)
     private PaymentType paymentType;
 
 

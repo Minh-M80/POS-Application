@@ -7,6 +7,8 @@ import com.example.minhm80.domain.StoreStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,7 +34,7 @@ import lombok.Setter;
 
 public class Store {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
@@ -56,6 +58,7 @@ public class Store {
     private String storeType;
 
 //    @NotNull(message = "Status is required")
+    @Enumerated(EnumType.STRING)
     private StoreStatus status;
 
     @Embedded
