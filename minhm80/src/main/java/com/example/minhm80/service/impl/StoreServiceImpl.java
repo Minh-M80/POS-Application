@@ -57,11 +57,12 @@ public class StoreServiceImpl implements StoreService {
     public StoreDTO updateStore(Long id, StoreDTO storeDTO) throws UserException {
         User currentUser = userService.getCurrentUser();
 
-        Store existing = storeRepository.findByStoreAdminId(currentUser.getId());
+        Store existing = storeRepository.findById(id).orElseThrow(
+                () -> new UserException("store not found", HttpStatus.NOT_FOUND)
+        );
 
-        if(existing == null){
-
-            throw new UserException("store not found", HttpStatus.NOT_FOUND);
+        if (!existing.getStoreAdmin().getId().equals(currentUser.getId())) {
+            throw new UserException("you don't have permission to update this store", HttpStatus.FORBIDDEN);
         }
 
         existing.setBrand(storeDTO.getBrand());
@@ -86,7 +87,13 @@ public class StoreServiceImpl implements StoreService {
 
     @Override
     public void deleteStore(Long id) throws UserException {
-        Store store = getStoreByAdmin();
+        User currentUser = userService.getCurrentUser();
+        Store store = storeRepository.findById(id).orElseThrow(
+                () -> new UserException("store not found", HttpStatus.NOT_FOUND)
+        );
+        if (!store.getStoreAdmin().getId().equals(currentUser.getId())) {
+            throw new UserException("you don't have permission to delete this store", HttpStatus.FORBIDDEN);
+        }
 
         storeRepository.delete(store);
     }

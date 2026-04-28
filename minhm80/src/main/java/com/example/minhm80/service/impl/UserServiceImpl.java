@@ -8,6 +8,7 @@ import com.example.minhm80.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -34,8 +35,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getCurrentUser() throws UserException {
-        log.info("authentication: {}",SecurityContextHolder.getContext().getAuthentication());
-        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info("authentication: {}", authentication);
+        if (authentication == null || authentication.getName() == null) {
+            throw new UserException("Unauthorized", HttpStatus.UNAUTHORIZED);
+        }
+        String email = authentication.getName();
         User user = userRepository.findByEmail(email);
 
         if(user == null){

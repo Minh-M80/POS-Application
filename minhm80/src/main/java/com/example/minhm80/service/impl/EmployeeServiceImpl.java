@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public UserDto createStoreEmployee(UserDto employee, Long storeId) throws Exception {
+        if (employee.getRole() == null) {
+            throw new UserException("Role is required", HttpStatus.BAD_REQUEST);
+        }
         Store store = storeRepository.findById(storeId).orElseThrow(
                 ()-> new UserException("Store not found", HttpStatus.NOT_FOUND)
         );
@@ -44,6 +48,9 @@ public class EmployeeServiceImpl implements EmployeeService {
             branch = branchRepository.findById(employee.getBranchId()).orElseThrow(
                     ()-> new UserException("branch not found", HttpStatus.NOT_FOUND)
             );
+            if (!branch.getStore().getId().equals(store.getId())) {
+                throw new UserException("Branch does not belong to store", HttpStatus.BAD_REQUEST);
+            }
 
         }
         User user = UserMapper.toEntity(employee);
@@ -64,6 +71,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public UserDto createBranchEmployee(UserDto employee, Long branchId) throws Exception {
+       if (employee.getRole() == null) {
+           throw new UserException("Role is required", HttpStatus.BAD_REQUEST);
+       }
 
        Branch branch = branchRepository.findById(branchId).orElseThrow(
                 ()-> new UserException("branch not found", HttpStatus.NOT_FOUND)
@@ -76,6 +86,7 @@ public class EmployeeServiceImpl implements EmployeeService {
        ){
            User user = UserMapper.toEntity(employee);
            user.setBranch(branch);
+           user.setStore(branch.getStore());
            user.setPassword(passwordEncoder.encode(employee.getPassword()));
            return UserMapper.toDTO(userRepository.save(user));
        }
@@ -95,14 +106,27 @@ public class EmployeeServiceImpl implements EmployeeService {
                 ()-> new UserException("employee not exist with given id", HttpStatus.NOT_FOUND)
         );
 
-        Branch branch =branchRepository.findById(employeeDetails.getBranchId()).orElseThrow(
-                ()->new UserException("branch not found", HttpStatus.NOT_FOUND)
-        );
-        existingEmployee.setEmail(employeeDetails.getEmail());
-        existingEmployee.setFullName(employeeDetails.getFullName());
-        existingEmployee.setPassword(employeeDetails.getPassword());
-        existingEmployee.setRole(employeeDetails.getRole());
-        existingEmployee.setBranch(branch);
+        Branch branch = null;
+        if (employeeDetails.getBranchId() != null) {
+            branch = branchRepository.findById(employeeDetails.getBranchId()).orElseThrow(
+                    ()->new UserException("branch not found", HttpStatus.NOT_FOUND)
+            );
+            existingEmployee.setBranch(branch);
+            existingEmployee.setStore(branch.getStore());
+        }
+        if (employeeDetails.getEmail() != null) {
+            existingEmployee.setEmail(employeeDetails.getEmail());
+        }
+        if (employeeDetails.getFullName() != null) {
+            existingEmployee.setFullName(employeeDetails.getFullName());
+        }
+        if (employeeDetails.getRole() != null) {
+            existingEmployee.setRole(employeeDetails.getRole());
+        }
+        if (employeeDetails.getPassword() != null && !employeeDetails.getPassword().isBlank()) {
+            existingEmployee.setPassword(passwordEncoder.encode(employeeDetails.getPassword()));
+        }
+        existingEmployee.setUpdatedAt(LocalDateTime.now());
 
 
 

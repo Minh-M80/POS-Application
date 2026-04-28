@@ -37,8 +37,8 @@ public class CustomerImpl implements CustomerService {
                 () -> new UserException("Customer not found", HttpStatus.NOT_FOUND)
         );
         customerToUpdate.setFullName(customer.getFullName());
-        customerToUpdate.setEmail(customerToUpdate.getEmail());
-        customerToUpdate.setPhone(customerToUpdate.getPhone());
+        customerToUpdate.setEmail(customer.getEmail());
+        customerToUpdate.setPhone(customer.getPhone());
 
 
         return customerRepository.save(customerToUpdate);

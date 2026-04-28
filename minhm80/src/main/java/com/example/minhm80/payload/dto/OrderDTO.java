@@ -1,5 +1,6 @@
 package com.example.minhm80.payload.dto;
 
+import com.example.minhm80.domain.OrderStatus;
 import com.example.minhm80.domain.PaymentType;
 import com.example.minhm80.modal.Branch;
 import com.example.minhm80.modal.Customer;
@@ -35,6 +36,7 @@ private Long customerId;
     private List<OrderItemDTO> items;
 
     private PaymentType paymentType;
+    private OrderStatus status;
 
 
 }

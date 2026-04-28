@@ -243,19 +243,19 @@ public class ShiftReportServiceImpl implements ShiftReportService {
 
         List<PaymentSumary> sumaries = new ArrayList<>();
 
-        for (Map.Entry<PaymentType, List<Order>> entry : grouped.entrySet()){
+            for (Map.Entry<PaymentType, List<Order>> entry : grouped.entrySet()){
                 double amount = entry.getValue().stream()
                         .mapToDouble(Order::getTotalAmount).sum();
 
             int transactions = entry.getValue().size();
-            double percent = (amount/totalSales)*100;
+            double percent = totalSales > 0 ? (amount / totalSales) * 100 : 0;
 
 
             PaymentSumary ps = new PaymentSumary();
             ps.setType(entry.getKey());
             ps.setTotalAmout(amount);
             ps.setTransactionCount(transactions);
-            ps.setPercentage(percent);
+            ps.setPercentage(totalSales > 0 ? percent : 0.0);
             sumaries.add(ps);
 
 

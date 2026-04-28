@@ -13,14 +13,14 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +35,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public AuthResponse signup(UserDto userDto) throws UserException {
+        if (userDto.getRole() == null) {
+            throw new UserException("role is required", HttpStatus.BAD_REQUEST);
+        }
         User user = userRepository.findByEmail(userDto.getEmail());
         if(user != null){
             throw new UserException("email id already registered !", HttpStatus.CONFLICT);
@@ -54,7 +57,11 @@ public class AuthServiceImpl implements AuthService {
         newUser.setUpdatedAt(LocalDateTime.now());
         User savedUser = userRepository.save(newUser);
 
-        Authentication authentication = new UsernamePasswordAuthenticationToken(userDto.getEmail(),userDto.getPassword());
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                savedUser.getEmail(),
+                null,
+                Collections.singletonList(new SimpleGrantedAuthority(savedUser.getRole().name()))
+        );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
@@ -79,10 +86,6 @@ public class AuthServiceImpl implements AuthService {
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
 //        assert authentication != null;
-        Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-
-        String role = authorities.iterator().next().getAuthority();
-
         String jwt = jwtProvider.generateToken(authentication);
 
         User user = userRepository.findByEmail(email);

@@ -2,7 +2,6 @@ package com.example.minhm80.configuration;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
@@ -17,11 +16,9 @@ import java.util.Set;
 
 @Service
 public class JwtProvider {
-//    static SecretKey key= Keys.hmacShaKeyFor(JwtConstant.JWT_SECRET.getBytes());
-//    static SecretKey key= Keys.hmacShaKeyFor(JwtConstant.JWT_SECRET.getBytes());
-SecretKey key = Keys.hmacShaKeyFor(
-        JwtConstant.JWT_SECRET.getBytes(StandardCharsets.UTF_8)
-);
+    SecretKey key = Keys.hmacShaKeyFor(
+            JwtConstant.JWT_SECRET.getBytes(StandardCharsets.UTF_8)
+    );
 
 
     public String generateToken(Authentication authentication){
@@ -42,7 +39,7 @@ SecretKey key = Keys.hmacShaKeyFor(
     }
 
     public String getEmailFromToken(String jwt){
-        jwt=jwt.substring(7);
+        jwt = extractToken(jwt);
         Claims claims = Jwts.parser()
                 .verifyWith(key)
                 .build()
@@ -59,5 +56,15 @@ SecretKey key = Keys.hmacShaKeyFor(
             auths.add(authority.getAuthority());
         }
         return String.join(",", auths);
+    }
+
+    private String extractToken(String token) {
+        if (token == null) {
+            throw new IllegalArgumentException("JWT token is missing");
+        }
+        if (token.startsWith("Bearer ")) {
+            return token.substring(7);
+        }
+        return token;
     }
 }

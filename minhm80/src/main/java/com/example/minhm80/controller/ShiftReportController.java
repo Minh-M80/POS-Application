@@ -7,7 +7,6 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -44,7 +43,7 @@ public class ShiftReportController {
     @GetMapping("/cashier/{cashierId}/by-date")
     public ResponseEntity<ShiftReportDTO> getShiftReportByDate(
             @PathVariable Long cashierId,
-            @RequestParam @DateTimeFormat (iso = DateTimeFormat.ISO.DATE) LocalDateTime date
+            @RequestParam @DateTimeFormat (iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime date
             ) throws Exception {
         return ResponseEntity.ok(
 

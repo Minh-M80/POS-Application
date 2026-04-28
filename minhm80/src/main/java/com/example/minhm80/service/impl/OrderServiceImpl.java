@@ -43,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
                 .cashier(cashier)
                 .customer(orderDTO.getCustomer())
                 .paymentType(orderDTO.getPaymentType())
+                .status(orderDTO.getStatus() != null ? orderDTO.getStatus() : OrderStatus.PENDING)
 
                 .build();
 
@@ -95,6 +96,7 @@ public class OrderServiceImpl implements OrderService {
                         order.getCashier().getId().equals(cashierId))
                 .filter(order -> paymentType==null ||
                         order.getPaymentType()==paymentType)
+                .filter(order -> status == null || order.getStatus() == status)
 
                 .map(OrderMapper::toDTO).collect(Collectors.toList());
 

@@ -2,9 +2,7 @@ package com.example.minhm80.configuration;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.Filter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -19,7 +17,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.crypto.SecretKey;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class JwtValidator extends OncePerRequestFilter {
@@ -35,9 +33,12 @@ public class JwtValidator extends OncePerRequestFilter {
 
         //Bearer jwt
         if(jwt!=null){
+            if (!jwt.startsWith("Bearer ")) {
+                throw new BadCredentialsException("Invalid JWT token");
+            }
             jwt=jwt.substring(7);
             try {
-                SecretKey key= Keys.hmacShaKeyFor(JwtConstant.JWT_SECRET.getBytes());
+                SecretKey key= Keys.hmacShaKeyFor(JwtConstant.JWT_SECRET.getBytes(StandardCharsets.UTF_8));
                 Claims claims = Jwts.parser()
                         .verifyWith(key)
                         .build()

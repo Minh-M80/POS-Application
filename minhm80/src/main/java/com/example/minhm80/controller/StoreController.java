@@ -24,10 +24,8 @@ public class StoreController {
 
 
     @PostMapping
-    public ResponseEntity<StoreDTO> createStore(@RequestBody StoreDTO storeDTO,
-                                                    @RequestHeader("Authorization") String jwt
-    ) throws UserException {
-        User user = userService.getUserFromJwtToken(jwt);
+    public ResponseEntity<StoreDTO> createStore(@RequestBody StoreDTO storeDTO) throws UserException {
+        User user = userService.getCurrentUser();
 
 
         return ResponseEntity.ok(storeService.createStore(storeDTO,user));
@@ -37,10 +35,7 @@ public class StoreController {
 
 
     @GetMapping()
-    public ResponseEntity<List<StoreDTO>> getAllStore(
-
-            @RequestHeader("Authorization") String jwt
-    ) throws Exception {
+    public ResponseEntity<List<StoreDTO>> getAllStore() throws Exception {
 
 
         return ResponseEntity.ok(storeService.getAllStores());
@@ -49,10 +44,7 @@ public class StoreController {
 
 
     @GetMapping("/admin")
-    public ResponseEntity<StoreDTO> getStoreByAdmin(
-
-            @RequestHeader("Authorization") String jwt
-    ) throws Exception {
+    public ResponseEntity<StoreDTO> getStoreByAdmin() throws Exception {
 
 
         return ResponseEntity.ok(StoreMapper.toDTO(storeService.getStoreByAdmin()));
@@ -61,10 +53,7 @@ public class StoreController {
 
 
     @GetMapping("/employee")
-    public ResponseEntity<StoreDTO> getStoreByEmployee(
-
-            @RequestHeader("Authorization") String jwt
-    ) throws Exception {
+    public ResponseEntity<StoreDTO> getStoreByEmployee() throws Exception {
 
 
         return ResponseEntity.ok(storeService.getStoreByEmployee());
@@ -95,10 +84,7 @@ public class StoreController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<StoreDTO> getStoreById(
-            @PathVariable Long id,
-            @RequestHeader("Authorization") String jwt
-    ) throws Exception {
+    public ResponseEntity<StoreDTO> getStoreById(@PathVariable Long id) throws Exception {
 
 
         return ResponseEntity.ok(storeService.getStoreById(id));

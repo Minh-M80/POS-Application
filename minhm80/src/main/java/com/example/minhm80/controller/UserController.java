@@ -25,17 +25,14 @@ public class UserController {
 
 
     @GetMapping("profile")
-    public ResponseEntity<UserDto> getUserProfile(
-            @RequestHeader("Authorization") String jwt
-    ) throws UserException {
-        User user = userService.getUserFromJwtToken(jwt);
+    public ResponseEntity<UserDto> getUserProfile() throws UserException {
+        User user = userService.getCurrentUser();
         log.info("user:{}",user.getLastLogin());
         return ResponseEntity.ok(UserMapper.toDTO(user));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserDto> getUserById(
-            @RequestHeader("Authorization") String jwt,
             @PathVariable Long id
     ) throws UserException {
         User user = userService.getUserById(id);
