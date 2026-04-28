@@ -1,7 +1,7 @@
 package com.example.minhm80.controller;
 
-import com.example.minhm80.modal.Refund;
 import com.example.minhm80.payload.dto.RefundDTO;
+import com.example.minhm80.payload.request.CreateRefundRequest;
 import com.example.minhm80.service.RefundService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -22,7 +22,14 @@ public class RefundController {
 
 
     @PostMapping
-    public ResponseEntity<RefundDTO> createRefund(@RequestBody RefundDTO refundDTO) throws Exception {
+    public ResponseEntity<RefundDTO> createRefund(@RequestBody CreateRefundRequest request) throws Exception {
+        RefundDTO refundDTO = RefundDTO.builder()
+                .orderId(request.getOrderId())
+                .reason(request.getReason())
+                .amount(request.getAmount())
+                .paymentType(request.getPaymentType())
+                .build();
+
         RefundDTO refund = refundService.createRefund(refundDTO);
         return ResponseEntity.ok(refund);
     }
@@ -82,12 +89,6 @@ public class RefundController {
         RefundDTO refund = refundService.getRefundById(id);
         return ResponseEntity.ok(refund);
     }
-
-
-
-
-
-
 
 
 }

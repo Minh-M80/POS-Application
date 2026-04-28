@@ -1,6 +1,8 @@
 package com.example.minhm80.controller;
 
 import com.example.minhm80.modal.Customer;
+import com.example.minhm80.payload.request.CreateCustomerRequest;
+import com.example.minhm80.payload.request.UpdateCustomerRequest;
 import com.example.minhm80.payload.response.ApiResponse;
 import com.example.minhm80.service.CustomerService;
 import lombok.RequiredArgsConstructor;
@@ -18,16 +20,26 @@ public class CustomerController {
     private final CustomerService customerService;
 
     @PostMapping
-    public ResponseEntity<Customer> create(@RequestBody Customer customer){
+    public ResponseEntity<Customer> create(@RequestBody CreateCustomerRequest request){
+        Customer customer = new Customer();
+        customer.setFullName(request.getFullName());
+        customer.setEmail(request.getEmail());
+        customer.setPhone(request.getPhone());
+
         return ResponseEntity.ok(customerService.createCustomer(customer));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<Customer> update(
             @PathVariable Long id,
-            @RequestBody Customer customer
+            @RequestBody UpdateCustomerRequest request
     ) throws Exception {
-        return ResponseEntity.ok(customerService.updateCustomer(id,customer));
+        Customer customer = new Customer();
+        customer.setFullName(request.getFullName());
+        customer.setEmail(request.getEmail());
+        customer.setPhone(request.getPhone());
+
+        return ResponseEntity.ok(customerService.updateCustomer(id, customer));
     }
 
     @DeleteMapping("/{id}")
@@ -51,9 +63,5 @@ public class CustomerController {
     ) throws Exception {
         return ResponseEntity.ok(customerService.searchCustomers(keyword));
     }
-
-
-
-
 
 }

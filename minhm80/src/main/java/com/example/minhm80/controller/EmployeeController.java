@@ -3,16 +3,15 @@ package com.example.minhm80.controller;
 import com.example.minhm80.domain.UserRole;
 import com.example.minhm80.modal.User;
 import com.example.minhm80.payload.dto.UserDto;
+import com.example.minhm80.payload.request.CreateEmployeeRequest;
+import com.example.minhm80.payload.request.UpdateEmployeeRequest;
 import com.example.minhm80.payload.response.ApiResponse;
 import com.example.minhm80.service.EmployeeService;
-import com.example.minhm80.service.impl.EmployeeServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-
-//import static com.sun.beans.introspect.PropertyInfo.Name.required;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,18 +25,32 @@ public class EmployeeController {
     @PostMapping("/store/{storeId}")
     public ResponseEntity<UserDto> createStoreEmployee(
             @PathVariable Long storeId,
-           @RequestBody UserDto userDto) throws Exception {
-        UserDto employee = employeeService.createStoreEmployee(userDto,storeId);
+           @RequestBody CreateEmployeeRequest request) throws Exception {
 
+        UserDto userDto = new UserDto();
+        userDto.setFullName(request.getFullName());
+        userDto.setEmail(request.getEmail());
+        userDto.setPhone(request.getPhone());
+        userDto.setPassword(request.getPassword());
+        userDto.setRole(request.getRole());
+
+        UserDto employee = employeeService.createStoreEmployee(userDto, storeId);
         return ResponseEntity.ok(employee);
     }
 
     @PostMapping("/branch/{branchId}")
     public ResponseEntity<UserDto> createBranchEmployee(
             @PathVariable Long branchId,
-            @RequestBody UserDto userDto) throws Exception {
-        UserDto employee = employeeService.createBranchEmployee(userDto,branchId);
+            @RequestBody CreateEmployeeRequest request) throws Exception {
 
+        UserDto userDto = new UserDto();
+        userDto.setFullName(request.getFullName());
+        userDto.setEmail(request.getEmail());
+        userDto.setPhone(request.getPhone());
+        userDto.setPassword(request.getPassword());
+        userDto.setRole(request.getRole());
+
+        UserDto employee = employeeService.createBranchEmployee(userDto, branchId);
         return ResponseEntity.ok(employee);
     }
 
@@ -45,9 +58,17 @@ public class EmployeeController {
     @PutMapping("/{id}")
     public ResponseEntity<User> updateEmployee(
             @PathVariable Long id,
-            @RequestBody UserDto userDto) throws Exception {
-        User employee = employeeService.updateEmployee(id,userDto);
+            @RequestBody UpdateEmployeeRequest request) throws Exception {
 
+        UserDto userDto = new UserDto();
+        userDto.setFullName(request.getFullName());
+        userDto.setEmail(request.getEmail());
+        userDto.setPhone(request.getPhone());
+        userDto.setPassword(request.getPassword());
+        userDto.setRole(request.getRole());
+        userDto.setBranchId(request.getBranchId());
+
+        User employee = employeeService.updateEmployee(id, userDto);
         return ResponseEntity.ok(employee);
     }
 
@@ -68,7 +89,7 @@ public class EmployeeController {
             @PathVariable Long id,
             @RequestParam(required = false)UserRole userRole
     ) throws Exception {
-        List<UserDto> employee = employeeService.findStoreEmployees(id,userRole);
+        List<UserDto> employee = employeeService.findStoreEmployees(id, userRole);
 
         return ResponseEntity.ok(employee);
     }
@@ -79,14 +100,10 @@ public class EmployeeController {
             @PathVariable Long id,
             @RequestParam(required = false)UserRole userRole
     ) throws Exception {
-        List<UserDto> employee = employeeService.findBranchEmployees(id,userRole);
+        List<UserDto> employee = employeeService.findBranchEmployees(id, userRole);
 
         return ResponseEntity.ok(employee);
     }
-
-
-
-
 
 
 }

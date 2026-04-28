@@ -1,8 +1,9 @@
 package com.example.minhm80.controller;
 
 
-import com.example.minhm80.modal.Category;
 import com.example.minhm80.payload.dto.CategoryDTO;
+import com.example.minhm80.payload.request.CreateCategoryRequest;
+import com.example.minhm80.payload.request.UpdateCategoryRequest;
 import com.example.minhm80.payload.response.ApiResponse;
 import com.example.minhm80.service.CategoryService;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,12 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<CategoryDTO> createCategory(
-            @RequestBody  CategoryDTO categoryDTO) throws Exception {
+            @RequestBody CreateCategoryRequest request) throws Exception {
+
+        CategoryDTO categoryDTO = CategoryDTO.builder()
+                .name(request.getName())
+                .storeId(request.getStoreId())
+                .build();
 
         return ResponseEntity.ok(
                 categoryService.createCategory(categoryDTO)
@@ -38,17 +44,22 @@ public class CategoryController {
 
     @PutMapping ("/{id}")
     public ResponseEntity<CategoryDTO> updateCategory(
-            @RequestBody CategoryDTO categoryDTO,
+            @RequestBody UpdateCategoryRequest request,
             @PathVariable Long id) throws Exception {
 
+        CategoryDTO categoryDTO = CategoryDTO.builder()
+                .name(request.getName())
+                .storeId(request.getStoreId())
+                .build();
+
         return ResponseEntity.ok(
-                categoryService.updateCategory(id,categoryDTO)
+                categoryService.updateCategory(id, categoryDTO)
         );
     }
 
 
     @DeleteMapping ("/{id}")
-    public ResponseEntity<ApiResponse> updateCategory(
+    public ResponseEntity<ApiResponse> deleteCategory(
 
             @PathVariable Long id) throws Exception {
 
@@ -59,7 +70,6 @@ public class CategoryController {
                 apiResponse
         );
     }
-
 
 
 

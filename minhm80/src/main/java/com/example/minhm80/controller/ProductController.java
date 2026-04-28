@@ -2,6 +2,8 @@ package com.example.minhm80.controller;
 
 import com.example.minhm80.modal.User;
 import com.example.minhm80.payload.dto.ProductDTO;
+import com.example.minhm80.payload.request.CreateProductRequest;
+import com.example.minhm80.payload.request.UpdateProductRequest;
 import com.example.minhm80.payload.response.ApiResponse;
 import com.example.minhm80.service.ProductService;
 import com.example.minhm80.service.UserService;
@@ -20,12 +22,24 @@ public class ProductController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<ProductDTO> create(@RequestBody ProductDTO productDTO) throws Exception {
+    public ResponseEntity<ProductDTO> create(@RequestBody CreateProductRequest request) throws Exception {
         User user = userService.getCurrentUser();
+
+        ProductDTO productDTO = ProductDTO.builder()
+                .name(request.getName())
+                .sku(request.getSku())
+                .description(request.getDescription())
+                .mrp(request.getMrp())
+                .sellingPrice(request.getSellingPrice())
+                .brand(request.getBrand())
+                .image(request.getImage())
+                .categoryId(request.getCategoryId())
+                .storeId(request.getStoreId())
+                .build();
 
         return ResponseEntity.ok(
                 productService.createProduct(
-                        productDTO,user
+                        productDTO, user
                 )
         );
     }
@@ -43,8 +57,19 @@ public class ProductController {
 
     @PatchMapping("/{id}")
     public ResponseEntity<ProductDTO> update(@PathVariable Long id,
-                                             @RequestBody ProductDTO productDTO) throws Exception {
+                                             @RequestBody UpdateProductRequest request) throws Exception {
         User user = userService.getCurrentUser();
+
+        ProductDTO productDTO = ProductDTO.builder()
+                .name(request.getName())
+                .sku(request.getSku())
+                .description(request.getDescription())
+                .mrp(request.getMrp())
+                .sellingPrice(request.getSellingPrice())
+                .brand(request.getBrand())
+                .image(request.getImage())
+                .categoryId(request.getCategoryId())
+                .build();
 
         return ResponseEntity.ok(
                 productService.updateProduct(
@@ -68,12 +93,8 @@ public class ProductController {
     }
 
 
-
-
-
-
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse> update(@PathVariable Long id) throws Exception {
+    public ResponseEntity<ApiResponse> delete(@PathVariable Long id) throws Exception {
         User user = userService.getCurrentUser();
         productService.deleteProduct(
                 id,
@@ -83,12 +104,9 @@ public class ProductController {
         ApiResponse apiResponse = new ApiResponse();
         apiResponse.setMessage("Product deleted successfully");
 
-
         return ResponseEntity.ok(
                 apiResponse
         );
     }
-
-
 
 }

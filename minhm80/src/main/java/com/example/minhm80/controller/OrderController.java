@@ -3,12 +3,15 @@ package com.example.minhm80.controller;
 import com.example.minhm80.domain.OrderStatus;
 import com.example.minhm80.domain.PaymentType;
 import com.example.minhm80.payload.dto.OrderDTO;
+import com.example.minhm80.payload.dto.OrderItemDTO;
+import com.example.minhm80.payload.request.CreateOrderRequest;
 import com.example.minhm80.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -19,8 +22,24 @@ public class OrderController {
 
     @PostMapping
     public ResponseEntity<OrderDTO> createOrder(
-            @RequestBody OrderDTO order) throws Exception {
-        return ResponseEntity.ok(orderService.createOrder(order));
+            @RequestBody CreateOrderRequest request) throws Exception {
+
+        List<OrderItemDTO> itemDTOs = request.getItems().stream().map(item -> {
+            OrderItemDTO dto = OrderItemDTO.builder()
+                    .productId(item.getProductId())
+                    .quantity(item.getQuantity())
+                    .build();
+            return dto;
+        }).collect(Collectors.toList());
+
+        OrderDTO orderDTO = OrderDTO.builder()
+                .customerId(request.getCustomerId())
+                .paymentType(request.getPaymentType())
+                .status(request.getStatus())
+                .items(itemDTOs)
+                .build();
+
+        return ResponseEntity.ok(orderService.createOrder(orderDTO));
     }
 
 
@@ -42,7 +61,7 @@ public class OrderController {
 
 
     ) throws Exception {
-        return ResponseEntity.ok(orderService.getOrdersByBranch(branchId,customerId,cashierId,paymentType,status));
+        return ResponseEntity.ok(orderService.getOrdersByBranch(branchId, customerId, cashierId, paymentType, status));
     }
 
     @GetMapping("/cashier/{id}")
@@ -69,50 +88,10 @@ public class OrderController {
     }
 
     @GetMapping("/recent/{branchId}")
-    public ResponseEntity<List<OrderDTO>> getRencentOrder(
+    public ResponseEntity<List<OrderDTO>> getRecentOrder(
             @PathVariable Long branchId
     ) throws Exception {
         return ResponseEntity.ok(orderService.getTop5RecentOrderByBranchId(branchId));
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }

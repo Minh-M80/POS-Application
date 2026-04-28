@@ -1,13 +1,14 @@
 package com.example.minhm80.controller;
 
 import com.example.minhm80.payload.dto.InventoryDTO;
+import com.example.minhm80.payload.request.CreateInventoryRequest;
+import com.example.minhm80.payload.request.UpdateInventoryRequest;
 import com.example.minhm80.payload.response.ApiResponse;
 import com.example.minhm80.service.InventoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.Path;
 import java.util.List;
 
 @RestController
@@ -20,17 +21,27 @@ public class InventoryController {
 
     @PostMapping()
     public ResponseEntity<InventoryDTO> create(
-            @RequestBody InventoryDTO inventoryDTO
+            @RequestBody CreateInventoryRequest request
     ){
+        InventoryDTO inventoryDTO = InventoryDTO.builder()
+                .branchId(request.getBranchId())
+                .productId(request.getProductId())
+                .quantity(request.getQuantity())
+                .build();
+
         return ResponseEntity.ok(inventoryService.createInventory(inventoryDTO));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<InventoryDTO> update(
-            @RequestBody InventoryDTO inventoryDTO,
+            @RequestBody UpdateInventoryRequest request,
             @PathVariable Long id
     ) throws Exception {
-        return ResponseEntity.ok(inventoryService.updateInventory(id,inventoryDTO));
+        InventoryDTO inventoryDTO = InventoryDTO.builder()
+                .quantity(request.getQuantity())
+                .build();
+
+        return ResponseEntity.ok(inventoryService.updateInventory(id, inventoryDTO));
     }
 
     @DeleteMapping("/{id}")
@@ -50,7 +61,7 @@ public class InventoryController {
             @PathVariable Long branchId,
             @PathVariable Long productId
     ){
-        return ResponseEntity.ok(inventoryService.getInventoryByProductIdAndBranchId(productId,branchId));
+        return ResponseEntity.ok(inventoryService.getInventoryByProductIdAndBranchId(productId, branchId));
     }
 
     @GetMapping("/branch/{branchId}")
@@ -60,9 +71,6 @@ public class InventoryController {
     ){
         return ResponseEntity.ok(inventoryService.getAllInventoryByBranchId(branchId));
     }
-
-
-
 
 
 }

@@ -1,8 +1,9 @@
 package com.example.minhm80.controller;
 
 import com.example.minhm80.exceptions.UserException;
-import com.example.minhm80.modal.Branch;
 import com.example.minhm80.payload.dto.BranchDTO;
+import com.example.minhm80.payload.request.CreateBranchRequest;
+import com.example.minhm80.payload.request.UpdateBranchRequest;
 import com.example.minhm80.payload.response.ApiResponse;
 import com.example.minhm80.service.BranchService;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +20,18 @@ public class BranchController {
     private final BranchService branchService;
 
     @PostMapping
-    public ResponseEntity<BranchDTO> createBranch(@RequestBody BranchDTO branchDTO) throws UserException {
+    public ResponseEntity<BranchDTO> createBranch(@RequestBody CreateBranchRequest request) throws UserException {
+        BranchDTO branchDTO = BranchDTO.builder()
+                .name(request.getName())
+                .address(request.getAddress())
+                .phone(request.getPhone())
+                .email(request.getEmail())
+                .workingDays(request.getWorkingDays())
+                .openTime(request.getOpenTime())
+                .closeTime(request.getCloseTime())
+                .storeId(request.getStoreId())
+                .build();
+
         BranchDTO createdBranch = branchService.createBranch(branchDTO);
         return ResponseEntity.ok(createdBranch);
     }
@@ -46,9 +58,20 @@ public class BranchController {
     @PutMapping("/{id}")
     public ResponseEntity<BranchDTO> updateBranch(
             @PathVariable Long id,
-            @RequestBody BranchDTO branchDTO
+            @RequestBody UpdateBranchRequest request
     ) throws Exception {
-        BranchDTO createdBranch = branchService.updateBranch(id,branchDTO);
+        BranchDTO branchDTO = BranchDTO.builder()
+                .name(request.getName())
+                .address(request.getAddress())
+                .phone(request.getPhone())
+                .email(request.getEmail())
+                .workingDays(request.getWorkingDays())
+                .openTime(request.getOpenTime())
+                .closeTime(request.getCloseTime())
+                .storeId(request.getStoreId())
+                .build();
+
+        BranchDTO createdBranch = branchService.updateBranch(id, branchDTO);
         return ResponseEntity.ok(createdBranch);
     }
 
